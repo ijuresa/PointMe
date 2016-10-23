@@ -17,6 +17,5 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Log.d(this.getClass().getSimpleName(), "It's Alive");
         }
-
     }
 }
