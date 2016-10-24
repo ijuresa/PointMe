@@ -2,11 +2,13 @@ package UserData;
 
 import android.widget.RadioButton;
 
+import java.io.Serializable;
+
 /**
  * Created by ivanj on 23/10/2016.
  */
 
-public class User implements IUser {
+public class User implements IUser, Serializable {
     public String getName() {
         return name;
     }
@@ -19,20 +21,20 @@ public class User implements IUser {
     public void setAge(String age) {
         this.age = age;
     }
-    public char getGender() {
+    public String getGender() {
         return gender;
     }
-    public void setGender(char gender) {
+    public void setGender(String gender) {
         this.gender = gender;
     }
 
     private String name;
     private String age;
-    private char gender;
+    private String gender;
 
     public User() { }
 
-    public User(String _name, String _age, char _gender) {
+    public User(String _name, String _age, String _gender) {
         this.name = _name;
         this.age = _age;
         this.gender = _gender;

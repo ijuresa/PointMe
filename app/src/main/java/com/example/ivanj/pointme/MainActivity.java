@@ -16,7 +16,7 @@ import UserData.User;
 import org.opencv.android.OpenCVLoader;
 
 public class MainActivity extends AppCompatActivity {
-    User _user;
+    User _user = new User();
 
     //Set
     private Button gButton;
@@ -42,25 +42,37 @@ public class MainActivity extends AppCompatActivity {
 
     private void addListenerOnButton() {
         gButton = (Button)findViewById(R.id.btnSignIn);
-        gUserName = ((EditText)findViewById(R.id.txtInputName));
+        gUserName = (EditText)findViewById(R.id.txtInputName);
         gUserAge = (EditText)findViewById(R.id.txtInputAge);
         gRadioGroup = (RadioGroup)findViewById(R.id.radioGroup2);
+
 
         gButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 try{
-                    if(isEmpty(gUserName)) {
-                        _user.setName(String.valueOf(gUserName));
+                    if(isFilled(gUserName)) {
+                        _user.setName(gUserName.getText().toString());
+
+                    } else {
+                        RuntimeException e = new RuntimeException();
+                        throw e;
                     }
+
+
                 } catch(Exception e) {
                     Toast.makeText(MainActivity.this,"UserName is mandatory! ", Toast.LENGTH_LONG).show();
                     return;
                 }
                 try {
-                    if(isEmpty(gUserAge)) {
-                        _user.setAge(String.valueOf(gUserAge));
+                    if(isFilled(gUserAge)) {
+                        _user.setAge(gUserAge.getText().toString());
+                        Log.d(_user.getAge(), "User Age:");
+                    } else {
+                        RuntimeException e = new RuntimeException();
+                        throw e;
                     }
+
                 } catch(Exception e) {
                     Toast.makeText(MainActivity.this,"Age is mandatory! ", Toast.LENGTH_LONG).show();
                     return;
@@ -68,17 +80,22 @@ public class MainActivity extends AppCompatActivity {
 
                 int getRadioBtn = gRadioGroup.getCheckedRadioButtonId();
                 gBtnGender = (RadioButton)findViewById(getRadioBtn);
-                //_user.setGender(gBtnGender.toString());
+                _user.setGender(gBtnGender.getText().toString());
+                Log.d(_user.getGender(), "User Gender:");
 
                 //If everything is okay, start new ACTIVITY
                 Intent _intent = new Intent(MainActivity.this, MenuActivity.class);
+                _intent.putExtra("UserObject", _user);
                 MainActivity.this.startActivity(_intent);
             }
         });
     }
 
 
-    private boolean isEmpty(EditText _editText) {
-        return _editText.getText().toString().trim().length() == 0;
+    private boolean isFilled(EditText _editText) {
+        if(_editText.getText().toString().isEmpty()) {
+            return false;
+        }
+        return true;
     }
 }

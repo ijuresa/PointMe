@@ -42,7 +42,8 @@
         android:background="@drawable/button_sign_in_style"
         android:id="@+id/btnSignIn"
         android:layout_alignRight="@+id/txtInputAge"
-        android:layout_alignEnd="@+id/txtInputAge" />
+        android:layout_alignEnd="@+id/txtInputAge"
+        android:layout_alignParentBottom="false" />
 
     <RadioGroup
         android:layout_width="wrap_content"
