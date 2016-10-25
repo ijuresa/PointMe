@@ -1,5 +1,8 @@
 package UserData;
 
+import android.app.Application;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.widget.RadioButton;
 
 import java.io.Serializable;
@@ -8,30 +11,34 @@ import java.io.Serializable;
  * Created by ivanj on 23/10/2016.
  */
 
-public class User implements IUser, Serializable {
+public class User implements IUser {
+
+    //Getters and Setters
     public String getName() {
         return name;
     }
-    public void setName(String name) {
-        this.name = name;
+    public void setName(String _name) {
+        this.name = _name;
     }
     public String getAge() {
         return age;
     }
-    public void setAge(String age) {
-        this.age = age;
+    public void setAge(String _age) {
+        this.age = _age;
     }
     public String getGender() {
         return gender;
     }
-    public void setGender(String gender) {
-        this.gender = gender;
+    public void setGender(String _gender) {
+        this.gender = _gender;
     }
 
+    //User data
     private String name;
     private String age;
     private String gender;
 
+    //Constructors
     public User() { }
 
     public User(String _name, String _age, String _gender) {
@@ -40,4 +47,6 @@ public class User implements IUser, Serializable {
         this.gender = _gender;
     }
 
+    private static final User _user = new User();
+    public static User getUser() { return _user; }
 }

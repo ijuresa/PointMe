@@ -16,8 +16,11 @@ public class MenuActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
-        Intent _intent = getIntent();
-        User _user = (User)_intent.getSerializableExtra("UserObject");
+
+        //Example how to get UserData
+        String userName = User.getUser().getName();
+        Log.d(userName, "User Name:");
+
         gButtonTest = (Button)findViewById(R.id.btnTest);
 
         gButtonTest.setOnClickListener(new View.OnClickListener() {
