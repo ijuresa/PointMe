@@ -12,6 +12,7 @@ import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import UserData.User;
+import Utilities.ActivityTags;
 
 import org.opencv.android.OpenCVLoader;
 
@@ -28,11 +29,10 @@ public class MainActivity extends AppCompatActivity {
 
         //Check if OpenCV is loaded
         if (!OpenCVLoader.initDebug()) {
-            Log.e(this.getClass().getSimpleName(), "Not working");
+            Log.e(ActivityTags.getActivity().getMain(), "OpenCv failed to initialize");
         } else {
-            Log.d(this.getClass().getSimpleName(), "It's Alive");
+            Log.d(ActivityTags.getActivity().getMain(), "OpenCv, initialized");
         }
-
         addListenerOnButton();
     }
 
@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
                 try{
                     if(isFilled(gUserName)) {
                         User.getUser().setName(gUserName.getText().toString());
-                        Log.d(User.getUser().getName(), "UserName:");
+                        Log.i(ActivityTags.getActivity().getMain(), "UserName: " + User.getUser().getName());
                     } else {
                         RuntimeException e = new RuntimeException();
                         throw e;
@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     if(isFilled(gUserAge)) {
                         User.getUser().setAge(gUserAge.getText().toString());
-                        Log.d(User.getUser().getAge(), "User Age:");
+                        Log.i(ActivityTags.getActivity().getMain(), "UserAge: " + User.getUser().getAge());
                     } else {
                         RuntimeException e = new RuntimeException();
                         throw e;
@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
                 gBtnGender = (RadioButton)findViewById(getRadioBtn);
 
                 User.getUser().setGender(gBtnGender.getText().toString());
-                Log.d(User.getUser().getGender(), "User Gender:");
+                Log.i(ActivityTags.getActivity().getMain(), "UserGender: " + User.getUser().getGender());
 
                 //If everything is okay, start new ACTIVITY
                 Intent _intent = new Intent(MainActivity.this, MenuActivity.class);

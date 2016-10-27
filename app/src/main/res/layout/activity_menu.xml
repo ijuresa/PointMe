@@ -34,12 +34,12 @@
             android:id="@+id/btnTest" />
 
         <Button
-            android:text="SKOR"
+            android:text="Calibrate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/button_sign_in_style"
             android:layout_marginBottom="20dp"
-            android:id="@+id/btnScore" />
+            android:id="@+id/btnCalibrate" />
 
         <Button
             android:text="START"
