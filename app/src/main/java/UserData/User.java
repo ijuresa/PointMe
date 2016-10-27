@@ -39,9 +39,9 @@ public class User implements IUser {
     private String gender;
 
     //Constructors
-    public User() { }
+    private User() { }
 
-    public User(String _name, String _age, String _gender) {
+    private User(String _name, String _age, String _gender) {
         this.name = _name;
         this.age = _age;
         this.gender = _gender;
