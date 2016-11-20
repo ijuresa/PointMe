@@ -1,12 +1,5 @@
 package UserData;
 
-import android.app.Application;
-import android.os.Parcel;
-import android.os.Parcelable;
-import android.widget.RadioButton;
-
-import java.io.Serializable;
-
 /**
  * Created by ivanj on 23/10/2016.
  */

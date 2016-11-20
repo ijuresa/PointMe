@@ -25,8 +25,9 @@
         <activity android:name=".TestActivity" />
         <activity
             android:name="com.pointme.colorblobdetection.ColorBlobDetectorActivity"
-            android:screenOrientation="landscape"></activity>
-        <activity android:name="com.ColorBlobCalibrate.ColorBlobCalibrate"></activity>
+            android:screenOrientation="landscape" />
+        <activity android:name="com.ColorBlobCalibrate.ColorBlobCalibrate" />
+        <activity android:name="com.ColorBlobCalibrate.ColorBlobCalibrateActivity"></activity>
     </application>
 
 </manifest>

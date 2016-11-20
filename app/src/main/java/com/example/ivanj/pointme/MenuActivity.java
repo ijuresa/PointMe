@@ -7,7 +7,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
-import com.ColorBlobCalibrate.ColorBlobCalibrate;
+import com.ColorBlobCalibrate.ColorBlobCalibrateActivity;
 
 import UserData.User;
 
@@ -38,7 +38,7 @@ public class MenuActivity extends AppCompatActivity {
         //Start calibration activity
         gButtonCalibrate.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                Intent _intent = new Intent(MenuActivity.this, ColorBlobCalibrate.class);
+                Intent _intent = new Intent(MenuActivity.this, ColorBlobCalibrateActivity.class);
                 MenuActivity.this.startActivity(_intent);
             }
         });
