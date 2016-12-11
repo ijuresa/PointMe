@@ -151,7 +151,7 @@ public class ColorBlobCalibrateActivity extends AppCompatActivity implements Vie
                 ", " + gBlobColorRgba.val[2] + ", " + gBlobColorRgba.val[3] + ")");
 
         //Save color for tracking
-        gBlobDetector.setHsvColor(gBlobColorHsv);
+        //gBlobDetector.setHsvColor(gBlobColorHsv);
 
         /******************************************************************************************/
         /*************************  Just for testing    *******************************************/
@@ -243,6 +243,7 @@ public class ColorBlobCalibrateActivity extends AppCompatActivity implements Vie
         gRgba = inputFrame.rgba();
 
         //Rotate screen by 90 degrees counter clockwise
+        //TODO: CHECK this rotation, doesn't work always well
         Core.transpose(gRgba, gRbgaT);
         Imgproc.resize(gRbgaT, gRgbaF, gRgbaF.size(), 0, 0, 0);
         Core.flip(gRgbaF, gRgba, -1);
