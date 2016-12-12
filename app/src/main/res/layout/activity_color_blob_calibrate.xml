@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:opencv="http://schemas.android.com/apk/res-auto"
+
+    android:id="@+id/activity_color_blob_calibrate"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:weightSum="3"
+    tools:context="com.ColorBlobCalibrate.ColorBlobCalibrate">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:weightSum="2">
+
+        <org.opencv.android.JavaCameraView
+            android:id="@+id/color_blob_detection_activity_surface_view"
+            android:layout_width="fill_parent"
+            android:layout_height="0px"
+            android:layout_weight="1.38"
+            opencv:camera_id="front" />
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1.5"
+            android:weightSum="1">
+
+            <TextView
+                android:text="TextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/txtCalibrationInstructions"
+                android:layout_weight="0.11"
+                android:textStyle="normal|bold"
+                android:textSize="18sp" />
+
+            <Button
+                android:text="Calibrate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/button_sign_in_style"
+                android:id="@+id/btnStartCalibrate" />
+
+            <Button
+                android:text="Start"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/button_sign_in_style"
+                android:id="@+id/btnCalibrationOver" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+</RelativeLayout>

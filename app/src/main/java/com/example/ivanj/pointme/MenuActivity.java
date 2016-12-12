@@ -7,25 +7,39 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
+import com.ColorBlobCalibrate.ColorBlobCalibrateActivity;
+
 import UserData.User;
 
 public class MenuActivity extends AppCompatActivity {
-    Button gButtonTest;
+    Button gButtonTest, gButtonCalibrate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
-        Intent _intent = getIntent();
-        User _user = (User)_intent.getSerializableExtra("UserObject");
+
+        //Example how to get UserData
+        String userName = User.getUser().getName();
+        Log.d(userName, "User Name:");
+
+        //Test part
         gButtonTest = (Button)findViewById(R.id.btnTest);
+        gButtonCalibrate = (Button)findViewById(R.id.btnCalibrate);
 
         gButtonTest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent _intent = new Intent(MenuActivity.this, TestActivity.class);
                 MenuActivity.this.startActivity(_intent);
+            }
+        });
 
+        //Start calibration activity
+        gButtonCalibrate.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                Intent _intent = new Intent(MenuActivity.this, ColorBlobCalibrateActivity.class);
+                MenuActivity.this.startActivity(_intent);
             }
         });
     }

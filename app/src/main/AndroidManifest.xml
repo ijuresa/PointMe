@@ -3,6 +3,9 @@
     package="com.example.ivanj.pointme">
 
     <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature android:name="android.hardware.camera2" />
+
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
@@ -18,10 +21,20 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+<<<<<<< HEAD
         <activity android:name=".MenuActivity"/>
         <activity android:name=".TestActivity"
             android:screenOrientation="landscape">
         </activity>
+=======
+        <activity android:name=".MenuActivity" />
+        <activity android:name=".TestActivity" />
+        <activity
+            android:name="com.pointme.colorblobdetection.ColorBlobDetectorActivity"
+            android:screenOrientation="landscape" />
+        <activity android:name="com.ColorBlobCalibrate.ColorBlobCalibrate" />
+        <activity android:name="com.ColorBlobCalibrate.ColorBlobCalibrateActivity"></activity>
+>>>>>>> refs/remotes/origin/master
     </application>
 
 </manifest>

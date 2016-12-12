@@ -1,10 +1,22 @@
 package ColorBlobDetection;
 
+<<<<<<< HEAD
+=======
+/**
+ * Created by ivanj on 26/10/2016.
+ */
+
+import android.util.Log;
+>>>>>>> refs/remotes/origin/master
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+<<<<<<< HEAD
+=======
+//OpenCV
+>>>>>>> refs/remotes/origin/master
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -12,17 +24,39 @@ import org.opencv.core.MatOfPoint;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
+<<<<<<< HEAD
+=======
+//Local files
+import Utilities.ActivityTags;
+
+
+>>>>>>> refs/remotes/origin/master
 public class ColorBlobDetector {
     // Lower and Upper bounds for range checking in HSV color space
     private Scalar mLowerBound = new Scalar(0);
     private Scalar mUpperBound = new Scalar(0);
+<<<<<<< HEAD
     // Minimum contour area in percent for contours filtering
     private static double mMinContourArea = 0.1;
+=======
+
+    // Minimum contour area in percent for contours filtering
+    private static double mMinContourArea = 0.1;
+
+>>>>>>> refs/remotes/origin/master
     // Color radius for range checking in HSV color space
     private Scalar mColorRadius = new Scalar(25,50,50,0);
     private Mat mSpectrum = new Mat();
     private List<MatOfPoint> mContours = new ArrayList<MatOfPoint>();
 
+<<<<<<< HEAD
+=======
+    //Variables used for HSV threshold
+    private static int MINHSV = 0;
+    private static int SENSITIVITY = 15;
+    private static int MAXHSV = 255;
+
+>>>>>>> refs/remotes/origin/master
     // Cache
     Mat mPyrDownMat = new Mat();
     Mat mHsvMat = new Mat();
@@ -34,6 +68,7 @@ public class ColorBlobDetector {
         mColorRadius = radius;
     }
 
+<<<<<<< HEAD
     public void setHsvColor(Scalar hsvColor) {
         double minH = (hsvColor.val[0] >= mColorRadius.val[0]) ? hsvColor.val[0]-mColorRadius.val[0] : 0;
         double maxH = (hsvColor.val[0]+mColorRadius.val[0] <= 255) ? hsvColor.val[0]+mColorRadius.val[0] : 255;
@@ -49,6 +84,45 @@ public class ColorBlobDetector {
 
         mLowerBound.val[3] = 0;
         mUpperBound.val[3] = 255;
+=======
+    /*
+     * Fixed:  Problem with false random detection
+     * Stayed: Problem with light detection from light bulb
+     * Color is set as default
+     */
+    public void setHsvColor(Scalar hsvColor) {
+        double minH = (hsvColor.val[0] >= mColorRadius.val[0]) ? hsvColor.val[0]- mColorRadius.val[0] : 0;
+        double maxH = (hsvColor.val[0]+ mColorRadius.val[0] <= 255) ? hsvColor.val[0]+ mColorRadius.val[0] : 255;
+
+        //TODO: Try to aprox.
+        //mLowerBound.val[0] = minH;
+        mLowerBound.val[0] = MINHSV;
+        Log.i(ActivityTags.getActivity().getColorBlobDetection(), "mLowerBound val[0] = " + mLowerBound.val[0]);
+
+        //mUpperBound.val[0] = maxH;
+        mUpperBound.val[0] = MAXHSV;
+        Log.i(ActivityTags.getActivity().getColorBlobDetection(), "mUpperBound val[0] = " + mUpperBound.val[0]);
+
+        //mLowerBound.val[1] = hsvColor.val[1] - mColorRadius.val[1];
+        mLowerBound.val[1] = MINHSV;
+        Log.i(ActivityTags.getActivity().getColorBlobDetection(), "mLowerBound val[1] = " + mLowerBound.val[1]);
+
+        //mUpperBound.val[1] = hsvColor.val[1] + mColorRadius.val[1];
+        mUpperBound.val[1] = SENSITIVITY;
+        Log.i(ActivityTags.getActivity().getColorBlobDetection(), "mUpperBound val[1] = " + mUpperBound.val[1]);
+
+        //mLowerBound.val[2] = hsvColor.val[2] - mColorRadius.val[2];
+        mLowerBound.val[2] = MAXHSV - SENSITIVITY;
+        Log.i(ActivityTags.getActivity().getColorBlobDetection(), "mLowerBound val[2] = " + mLowerBound.val[2]);
+
+        //mUpperBound.val[2] = hsvColor.val[2] + mColorRadius.val[2];
+        mUpperBound.val[2] = MINHSV;
+        Log.i(ActivityTags.getActivity().getColorBlobDetection(), "mUpperBound val[2] = " + mUpperBound.val[2]);
+
+        mLowerBound.val[3] = MINHSV;
+        mUpperBound.val[3] = MAXHSV;
+
+>>>>>>> refs/remotes/origin/master
 
         Mat spectrumHsv = new Mat(1, (int)(maxH-minH), CvType.CV_8UC3);
 
@@ -106,4 +180,8 @@ public class ColorBlobDetector {
     public List<MatOfPoint> getContours() {
         return mContours;
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> refs/remotes/origin/master
