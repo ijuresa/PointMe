@@ -10,6 +10,7 @@ import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
@@ -18,6 +19,7 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -29,26 +31,45 @@ import android.view.SurfaceView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.TranslateAnimation;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import org.opencv.android.CameraBridgeViewBase;
 
 import ColorBlobDetection.ColorBlobDetector;
+import Utilities.ActivityTags;
 
 public class TestActivity extends AppCompatActivity implements View.OnTouchListener,
         CameraBridgeViewBase.CvCameraViewListener2 {
 
-    private static final String  TAG              = "OCVSample::Activity";
-
-    private boolean              mIsColorSelected = false;
     private Mat                  mRgba;
     private Scalar               mBlobColorRgba;
     private Scalar               mBlobColorHsv;
-    private ColorBlobDetector    mDetector;
+    private ColorBlobDetector    gBlobDetector;
     private Mat                  mSpectrum;
     private Size                 SPECTRUM_SIZE;
     private Scalar               CONTOUR_COLOR;
 
+    //Rotation
+    private Mat gRgbaF;
+    private Mat gRbgaT;
+
+    //Pointer variables
+    private TranslateAnimation movePointer;
+    ImageView pointerImage;
+    private Point centerPoint = new Point(0,0);
+    Point oldCenterPoint;
+    private double areaThreshold = 0.25;
+
     private CameraBridgeViewBase mOpenCvCameraView;
+
+    //Shared preferences file
+    public static final String PREFERENCE_FILE = "PointMe";
+
+    //Values from SharedPreferences
+    double maxArea, minArea;
+
 
     private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -56,9 +77,10 @@ public class TestActivity extends AppCompatActivity implements View.OnTouchListe
             switch (status) {
                 case LoaderCallbackInterface.SUCCESS:
                 {
-                    Log.i(TAG, "OpenCV loaded successfully");
+                    Log.i(ActivityTags.getActivity().getColorBlobDetection(),
+                            "OpenCV loaded successfully");
                     mOpenCvCameraView.enableView();
-                    mOpenCvCameraView.setOnTouchListener(TestActivity.this);
+                    //mOpenCvCameraView.setOnTouchListener(TestActivity.this);
                 } break;
                 default:
                 {
@@ -68,39 +90,40 @@ public class TestActivity extends AppCompatActivity implements View.OnTouchListe
         }
     };
 
-    public TestActivity() {
-        Log.i(TAG, "Instantiated new " + this.getClass());
-    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.i(TAG, "called onCreate");
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         setContentView(R.layout.activity_test);
 
+        //Pointer image
+        pointerImage = (ImageView)findViewById(R.id.imageViewPoint);
+
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.color_blob_detection_activity_surface_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
+        mOpenCvCameraView.setAlpha(0);
+
     }
     @Override
-    public void onPause()
-    {
+    public void onPause() {
         super.onPause();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
     }
 
     @Override
-    public void onResume()
-    {
+    public void onResume() {
         super.onResume();
         if (!OpenCVLoader.initDebug()) {
-            Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+            Log.d(ActivityTags.getActivity().getColorBlobDetection(),
+                    "Internal OpenCV library not found. Using OpenCV Manager for initialization");
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_11, this, mLoaderCallback);
         } else {
-            Log.d(TAG, "OpenCV library found inside package. Using it!");
+            Log.d(ActivityTags.getActivity().getColorBlobDetection(),
+                    "OpenCV library found inside package. Using it!");
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
     }
@@ -110,22 +133,46 @@ public class TestActivity extends AppCompatActivity implements View.OnTouchListe
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
     }
+    public void getData() {
+        //Get data
+        SharedPreferences pSettings = getSharedPreferences(PREFERENCE_FILE, 0);
+        gBlobDetector.setMaxArea(pSettings.getInt("maxArea", 10));
+        gBlobDetector.setMinArea(pSettings.getInt("minArea", 0));
+
+        //Save HSV color from SharedPreferences to object
+        for(int i = 0; i < 4; i ++) {
+            mBlobColorHsv.val[i] = pSettings.getInt("hsvColor" + i, 0);
+        }
+        gBlobDetector.setHsvColor(mBlobColorHsv);
+        gBlobDetector.setColorHSV();
+        Toast.makeText(getApplicationContext(), "Tracking with color " + gBlobDetector.getColorHSV(),
+                Toast.LENGTH_SHORT).show();
+    }
 
     public void onCameraViewStarted(int width, int height) {
         mRgba = new Mat(height, width, CvType.CV_8UC4);
-        mDetector = new ColorBlobDetector();
+        gBlobDetector = new ColorBlobDetector();
         mSpectrum = new Mat();
         mBlobColorRgba = new Scalar(255);
         mBlobColorHsv = new Scalar(255);
         SPECTRUM_SIZE = new Size(200, 64);
         CONTOUR_COLOR = new Scalar(255,0,0,255);
+
+        //Used for aligning screen
+        gRgbaF = new Mat(height, width, CvType.CV_8UC4);
+        gRbgaT = new Mat(height, width, CvType.CV_8UC4);
+
+        getData();
+        Imgproc.resize(gBlobDetector.getSpectrum(), mSpectrum, SPECTRUM_SIZE);
     }
 
     public void onCameraViewStopped() {
         mRgba.release();
     }
 
+    //Don't open, dead inside.
     public boolean onTouch(View v, MotionEvent event) {
+        /*
         int cols = mRgba.cols();
         int rows = mRgba.rows();
 
@@ -163,34 +210,78 @@ public class TestActivity extends AppCompatActivity implements View.OnTouchListe
         Log.i(TAG, "Touched rgba color: (" + mBlobColorRgba.val[0] + ", " + mBlobColorRgba.val[1] +
                 ", " + mBlobColorRgba.val[2] + ", " + mBlobColorRgba.val[3] + ")");
 
-        mDetector.setHsvColor(mBlobColorHsv);
+        gBlobDetector.setHsvColor(mBlobColorHsv);
 
-        Imgproc.resize(mDetector.getSpectrum(), mSpectrum, SPECTRUM_SIZE);
-
-        mIsColorSelected = true;
+        Imgproc.resize(gBlobDetector.getSpectrum(), mSpectrum, SPECTRUM_SIZE);
 
         touchedRegionRgba.release();
         touchedRegionHsv.release();
 
         return false; // don't need subsequent touch events
+        */
+        return false;
     }
+
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         mRgba = inputFrame.rgba();
+        Log.i(ActivityTags.getActivity().getColorBlobDetection(), "mRgba " + mRgba);
+        //Rotate screen by 90 degrees counter clockwise
+        //TODO: CHECK this rotation, doesn't work always well
+        Core.transpose(mRgba, gRbgaT);
+        Imgproc.resize(gRbgaT, gRgbaF, gRgbaF.size(), 0, 0, 0);
+        Core.flip(gRgbaF, mRgba, -1);
 
-        if (mIsColorSelected) {
-            mDetector.process(mRgba);
-            List<MatOfPoint> contours = mDetector.getContours();
-            Log.e(TAG, "Contours count: " + contours.size());
-            Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
+        gBlobDetector.process(mRgba);
+        List<MatOfPoint> contours = gBlobDetector.getContours();
+        Log.e(ActivityTags.getActivity().getColorBlobDetection(),
+                "Contours count: " + contours.size());
+        Imgproc.drawContours(mRgba, contours, -1, CONTOUR_COLOR);
 
-            Mat colorLabel = mRgba.submat(4, 68, 4, 68);
-            colorLabel.setTo(mBlobColorRgba);
+        Mat colorLabel = mRgba.submat(4, 68, 4, 68);
+        colorLabel.setTo(mBlobColorRgba);
 
-            Mat spectrumLabel = mRgba.submat(4, 4 + mSpectrum.rows(), 70, 70 + mSpectrum.cols());
-            mSpectrum.copyTo(spectrumLabel);
+        Mat spectrumLabel = mRgba.submat(4, 4 + mSpectrum.rows(), 70, 70 + mSpectrum.cols());
+        mSpectrum.copyTo(spectrumLabel);
+
+        //Check if click is detected
+        if(gBlobDetector.getContours().size() == 2) {
+            double area1 = Imgproc.contourArea(gBlobDetector.getContours().get(0));
+            double area2 = Imgproc.contourArea(gBlobDetector.getContours().get(1));
+
+            //Create threshold values according to area1
+            double lowerBound = area1 * 1 - areaThreshold;
+            double upperBound = area1 * 1 + areaThreshold;
+
+            //Click detected
+            //TODO: Add actions
+            if((area2 <= upperBound) || (area2 >= lowerBound)) {
+
+            }
+        } else {
+            //Will be used to check if point has moved
+            oldCenterPoint = centerPoint;
+            centerPoint = gBlobDetector.getCenterPoint(centerPoint);
+            Log.i(ActivityTags.getActivity().getColorBlobDetection(),"Koordinate tocke "
+                    + centerPoint.x + " " + centerPoint.y);
+
+            //Check if point has moved
+            //If it has -> draw animation
+            if((oldCenterPoint.x != centerPoint.x) || (oldCenterPoint.y != centerPoint.x)) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        movePointer = new TranslateAnimation((float)oldCenterPoint.x,
+                                (float)centerPoint.x, (float)oldCenterPoint.y, (float)centerPoint.y);
+                        movePointer.setDuration(10);
+                        movePointer.setFillAfter(true);
+
+                        pointerImage.startAnimation(movePointer);
+                    }
+                });
+            }
+
         }
-
         return mRgba;
     }
 
@@ -201,5 +292,4 @@ public class TestActivity extends AppCompatActivity implements View.OnTouchListe
 
         return new Scalar(pointMatRgba.get(0, 0));
     }
-
 }
