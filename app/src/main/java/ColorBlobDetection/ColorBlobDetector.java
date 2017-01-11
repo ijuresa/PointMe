@@ -24,14 +24,13 @@ import org.opencv.utils.Converters;
 //Local files
 import Utilities.ActivityTags;
 
-
 public class ColorBlobDetector {
     // Lower and Upper bounds for range checking in HSV color space
     private Scalar mLowerBound = new Scalar(0);
     private Scalar mUpperBound = new Scalar(0);
 
     // Color radius for range checking in HSV color space
-    private Scalar mColorRadius = new Scalar(25,50,50,0);
+    private Scalar mColorRadius = new Scalar(15,40,20,0);
     private Mat mSpectrum = new Mat();
     private List<MatOfPoint> mContours = new ArrayList<MatOfPoint>();
 
@@ -48,8 +47,10 @@ public class ColorBlobDetector {
     Mat mHierarchy = new Mat();
 
     //Values from SEEK bar
-    private double _minArea = 400, _maxArea = 900;
-    private double _defaultArea = 400;
+    private double _minArea = 150, _maxArea = 900;
+    private double _defaultArea = 150;
+
+    private String stringHSV;
 
     public void setColorRadius(Scalar radius) {
         mColorRadius = radius;
@@ -58,7 +59,6 @@ public class ColorBlobDetector {
     /*
      * Fixed:  Problem with false random detection
      * Stayed: Problem with light detection from light bulb
-     * Color is set as default
      */
     public void setHsvColor(Scalar hsvColor) {
         double minH = (hsvColor.val[0] >= mColorRadius.val[0]) ? hsvColor.val[0]- mColorRadius.val[0] : 0;
@@ -141,10 +141,11 @@ public class ColorBlobDetector {
             MatOfPoint contour = each.next();
             if ((Imgproc.contourArea(contour) >= _minArea) && (Imgproc.contourArea(contour) <= _maxArea)) {
                 Core.multiply(contour, new Scalar(4,4), contour);
+
                 mContours.add(contour);
                 Vector<Point> kontura;
-                kontura = new Vector<Point>() {
-                };
+                kontura = new Vector<Point>();
+
                 Converters.Mat_to_vector_Point(contour,kontura);
                 Log.i(ActivityTags.getActivity().getColorBlobDetection(),"Kontura" + kontura.get(0));
 
@@ -156,11 +157,50 @@ public class ColorBlobDetector {
         return mContours;
     }
 
+    //Sets min area for color blob tracking
     public void setMinArea(double minArea) {
         _minArea = _defaultArea + (minArea * 50);
     }
 
     public void setMaxArea(double maxArea) {
         _maxArea = _defaultArea + (maxArea * 50);
+    }
+
+    public void setColorHSV() {
+        for(int i = 0; i < 4; i ++) {
+            stringHSV += mColorRadius.val[i] + ",";
+        }
+    }
+
+    public String getColorHSV() {
+        return stringHSV;
+    }
+
+    public Point getCenterPoint(Point oldDot) {
+        Vector<Point> currContour;
+        currContour = new Vector<Point>();
+        double currContourSumX = 0;
+        double currContourSumY = 0;
+
+        Point currDot = new Point(0, 0);
+
+        //Check if there are more cotours than desired
+        if(mContours.size() > 1) {
+            return oldDot;
+        } else if(mContours.isEmpty()) return oldDot;
+        Converters.Mat_to_vector_Point(mContours.get(0),currContour);
+
+        for(int i = 0; i < currContour.size(); i ++) {
+            currContourSumX += currContour.get(i).x;
+            currContourSumY += currContour.get(i).y;
+            //Log.i(ActivityTags.getActivity().getColorBlobDetection(), "Tocka: " + currContour.get(i));
+        }
+        currContourSumX /= currContour.size();
+        currContourSumY /= currContour.size();
+
+        currDot.x = (int)currContourSumX;
+        currDot.y = (int)currContourSumY;
+
+        return currDot;
     }
 }
