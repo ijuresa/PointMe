@@ -22,7 +22,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".MenuActivity" />
-        <activity android:name=".TestActivity" />
+        <activity android:name=".TestActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name="com.pointme.colorblobdetection.ColorBlobDetectorActivity"
             android:screenOrientation="landscape" />

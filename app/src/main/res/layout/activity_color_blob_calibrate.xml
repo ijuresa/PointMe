@@ -39,15 +39,15 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/seekBarMinArea"
                 android:layout_weight="0.11"
-                android:max="10" />
+                android:max="15" />
 
             <SeekBar
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/seekBarMaxArea"
                 android:layout_weight="0.11"
-                android:max="10"
-                android:progress="10" />
+                android:max="15"
+                android:progress="15" />
 
             <Button
                 android:text="Save"

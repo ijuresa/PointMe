@@ -17,4 +17,25 @@
         android:layout_width="fill_parent"
         android:layout_height="match_parent"
         opencv:camera_id="front"/>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        opencv:srcCompat="@android:drawable/ic_delete"
+        android:id="@+id/imageViewPoint"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:inputType="textPersonName"
+        android:text="Name"
+        android:ems="10"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:id="@+id/editText" />
+
+
 </RelativeLayout>
