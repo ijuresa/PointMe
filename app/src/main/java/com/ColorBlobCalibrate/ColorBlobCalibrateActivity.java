@@ -1,5 +1,6 @@
 package com.ColorBlobCalibrate;
 
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -9,6 +10,8 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.SeekBar;
+import android.widget.Toast;
 
 //Local imports
 import com.example.ivanj.pointme.R;
@@ -54,6 +57,16 @@ public class ColorBlobCalibrateActivity extends AppCompatActivity implements Vie
     private Scalar gBlobColorRgba;
     private Scalar gBlobColorHsv;
 
+    //Shared preferences file
+    public static final String PREFERENCE_FILE = "PointMe";
+
+    //SeekBars - min and max blob area
+    SeekBar seekBarMinArea, seekBarMaxArea;
+
+    //Buttons
+    Button buttonSave;
+    boolean isTouched = false;
+
     //Check OpenCV status
     private BaseLoaderCallback gLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -82,6 +95,75 @@ public class ColorBlobCalibrateActivity extends AppCompatActivity implements Vie
 
         setContentView(R.layout.activity_color_blob_calibrate);
 
+        //Restore preferences from previous sessions
+        SharedPreferences pSettings = getSharedPreferences(PREFERENCE_FILE, 0);
+        final SharedPreferences.Editor pEditor = pSettings.edit();
+
+        seekBarMinArea = (SeekBar)findViewById(R.id.seekBarMinArea);
+        seekBarMaxArea = (SeekBar)findViewById(R.id.seekBarMaxArea);
+        seekBarMaxArea.setProgress(pSettings.getInt("maxArea",10));
+        seekBarMinArea.setProgress(pSettings.getInt("minArea",0));
+
+
+        seekBarMinArea.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progressValue, boolean b) {
+                gBlobDetector.setMinArea(progressValue);
+                Log.i(ActivityTags.getActivity().getColorBlobDetection(), "Current Min: "
+                        + progressValue);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        seekBarMaxArea.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progressValue, boolean b) {
+                gBlobDetector.setMaxArea(progressValue);
+                Log.i(ActivityTags.getActivity().getColorBlobDetection(), "Current Max: "
+                        + progressValue);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        //Botun - Saves preferences
+
+        buttonSave = (Button) findViewById(R.id.buttonSave);
+
+        buttonSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(isTouched) {
+                    pEditor.putInt("maxArea", seekBarMaxArea.getProgress());
+                    pEditor.putInt("minArea", seekBarMinArea.getProgress());
+
+                    pEditor.putInt("hsvColor0", (int) gBlobColorHsv.val[0]);
+                    pEditor.putInt("hsvColor1", (int) gBlobColorHsv.val[1]);
+                    pEditor.putInt("hsvColor2", (int) gBlobColorHsv.val[2]);
+                    pEditor.putInt("hsvColor3", (int) gBlobColorHsv.val[3]);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Select Color.",
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
         //Set camera to surface
         gOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.color_blob_detection_activity_surface_view);
         gOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
@@ -133,12 +215,16 @@ public class ColorBlobCalibrateActivity extends AppCompatActivity implements Vie
         Imgproc.cvtColor(touchedRegionRgba, touchedRegionHsv, Imgproc.COLOR_RGB2HSV_FULL);
 
         //Calculate average color of touched region
+        //Sum of points by H S V values -> output 4 value array
         gBlobColorHsv = Core.sumElems(touchedRegionHsv);
+
         Log.i(ActivityTags.getActivity().getColorBlobDetection(), "gBlobColorHsv sum = " + gBlobColorHsv);
 
         //Get number of points from calculated rectangle
         int lPointCount = touchedRect.width * touchedRect.height;
         Log.i(ActivityTags.getActivity().getColorBlobDetection(), "Point Count = " + lPointCount);
+
+
         for(int i = 0; i < gBlobColorHsv.val.length; i ++) {
             gBlobColorHsv.val[i] /= lPointCount;
             Log.i(ActivityTags.getActivity().getColorBlobDetection(), i + " = " + gBlobColorHsv.val[i] + " Place");
@@ -151,12 +237,12 @@ public class ColorBlobCalibrateActivity extends AppCompatActivity implements Vie
                 ", " + gBlobColorRgba.val[2] + ", " + gBlobColorRgba.val[3] + ")");
 
         //Save color for tracking
-        //gBlobDetector.setHsvColor(gBlobColorHsv);
+        gBlobDetector.setHsvColor(gBlobColorHsv);
 
         /******************************************************************************************/
         /*************************  Just for testing    *******************************************/
         //Set RGB color to white
-        gBlobColorRgba.val[0] = 255;
+        /*gBlobColorRgba.val[0] = 255;
         gBlobColorRgba.val[1] = 255;
         gBlobColorRgba.val[2] = 255;
         gBlobColorRgba.val[3] = 255;
@@ -168,8 +254,9 @@ public class ColorBlobCalibrateActivity extends AppCompatActivity implements Vie
         gBlobColorHsv.val[3] = 0.0;
 
         gBlobDetector.setHsvColor(gBlobColorHsv);
-
+    */
         /******************************************************************************************/
+
         Imgproc.resize(gBlobDetector.getSpectrum(), gSpectrum, SPECTRUM_SIZE);
         Log.i(ActivityTags.getActivity().getColorBlobDetection(), "Spectrum!?!?: " + gBlobDetector.getSpectrum());
         Log.i(ActivityTags.getActivity().getColorBlobDetection(), "Color Contour!?!?: " + gBlobDetector.getContours());
@@ -179,7 +266,7 @@ public class ColorBlobCalibrateActivity extends AppCompatActivity implements Vie
         touchedRegionRgba.release();
         touchedRegionHsv.release();
 
-
+        isTouched = true;
         return false;
     }
 
