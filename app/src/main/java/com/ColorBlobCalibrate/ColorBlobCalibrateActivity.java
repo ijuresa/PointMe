@@ -96,12 +96,12 @@ public class ColorBlobCalibrateActivity extends AppCompatActivity implements Vie
         setContentView(R.layout.activity_color_blob_calibrate);
 
         //Restore preferences from previous sessions
-        SharedPreferences pSettings = getSharedPreferences(PREFERENCE_FILE, 0);
+        final SharedPreferences pSettings = getSharedPreferences(PREFERENCE_FILE, 0);
         final SharedPreferences.Editor pEditor = pSettings.edit();
 
         seekBarMinArea = (SeekBar)findViewById(R.id.seekBarMinArea);
         seekBarMaxArea = (SeekBar)findViewById(R.id.seekBarMaxArea);
-        seekBarMaxArea.setProgress(pSettings.getInt("maxArea",10));
+        seekBarMaxArea.setProgress(pSettings.getInt("maxArea",15));
         seekBarMinArea.setProgress(pSettings.getInt("minArea",0));
 
 
@@ -144,12 +144,12 @@ public class ColorBlobCalibrateActivity extends AppCompatActivity implements Vie
         });
 
         //Botun - Saves preferences
-
         buttonSave = (Button) findViewById(R.id.buttonSave);
 
         buttonSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //Check if color is selected and save data to sharedPreferences
                 if(isTouched) {
                     pEditor.putInt("maxArea", seekBarMaxArea.getProgress());
                     pEditor.putInt("minArea", seekBarMinArea.getProgress());
@@ -158,6 +158,10 @@ public class ColorBlobCalibrateActivity extends AppCompatActivity implements Vie
                     pEditor.putInt("hsvColor1", (int) gBlobColorHsv.val[1]);
                     pEditor.putInt("hsvColor2", (int) gBlobColorHsv.val[2]);
                     pEditor.putInt("hsvColor3", (int) gBlobColorHsv.val[3]);
+
+                    pEditor.commit();
+                    if(pSettings.contains("maxArea")) Toast.makeText(getApplicationContext(),
+                            "Saved", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(getApplicationContext(), "Select Color.",
                             Toast.LENGTH_SHORT).show();
@@ -238,24 +242,6 @@ public class ColorBlobCalibrateActivity extends AppCompatActivity implements Vie
 
         //Save color for tracking
         gBlobDetector.setHsvColor(gBlobColorHsv);
-
-        /******************************************************************************************/
-        /*************************  Just for testing    *******************************************/
-        //Set RGB color to white
-        /*gBlobColorRgba.val[0] = 255;
-        gBlobColorRgba.val[1] = 255;
-        gBlobColorRgba.val[2] = 255;
-        gBlobColorRgba.val[3] = 255;
-
-        //Set HSV color to white
-        gBlobColorHsv.val[0] = 0.0;
-        gBlobColorHsv.val[1] = 0.0;
-        gBlobColorHsv.val[2] = 255.0;
-        gBlobColorHsv.val[3] = 0.0;
-
-        gBlobDetector.setHsvColor(gBlobColorHsv);
-    */
-        /******************************************************************************************/
 
         Imgproc.resize(gBlobDetector.getSpectrum(), gSpectrum, SPECTRUM_SIZE);
         Log.i(ActivityTags.getActivity().getColorBlobDetection(), "Spectrum!?!?: " + gBlobDetector.getSpectrum());
