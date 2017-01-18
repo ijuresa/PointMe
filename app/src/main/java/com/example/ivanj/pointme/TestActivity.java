@@ -11,45 +11,42 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
-import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.imgproc.Imgproc;
 
-import android.app.Activity;
 import android.app.Instrumentation;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.os.SystemClock;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.View.OnTouchListener;
 import android.view.SurfaceView;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.view.View;
 import android.view.animation.TranslateAnimation;
-import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
-import org.opencv.android.CameraBridgeViewBase;
+import com.ColorBlobCalibrate.TimeDebounce;
 
 import ColorBlobDetection.ColorBlobDetector;
+import UserData.TestData;
 import Utilities.ActivityTags;
 
 public class TestActivity extends AppCompatActivity implements View.OnTouchListener,
-        CameraBridgeViewBase.CvCameraViewListener2 {
+        CameraBridgeViewBase.CvCameraViewListener2, AdapterView.OnItemSelectedListener {
 
     private Mat                  mRgba;
     private Scalar               mBlobColorRgba;
@@ -67,24 +64,27 @@ public class TestActivity extends AppCompatActivity implements View.OnTouchListe
     private TranslateAnimation movePointer;
     private ImageView pointerImage;
     private Point centerPoint = new Point(0,0);
-    private Point oldCenterPoint;
+    private Point oldCenterPoint = new Point(0, 0);
+    private Point screenPoint = new Point(0, 0);
 
-    //For multiplication threshold
-    private double areaThreshold = 0.25;
+    //For multiplication threshold / debounce timer
+    private double areaThreshold = 0.1;
+    private TimeDebounce debounceTimer;
 
     private CameraBridgeViewBase mOpenCvCameraView;
 
     //Shared preferences file
     public static final String PREFERENCE_FILE = "PointMe";
-
     //Values from SharedPreferences
     double maxArea, minArea;
-
 
     final Instrumentation m_Instrumentation = new Instrumentation();
 
     View.OnClickListener globalButtonListener;
 
+    ArrayAdapter<CharSequence> adapterSpinner;
+    TestData dataTester;
+    EditText inputText;
 
     private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -115,16 +115,57 @@ public class TestActivity extends AppCompatActivity implements View.OnTouchListe
 
         //Pointer image
         pointerImage = (ImageView)findViewById(R.id.imageViewPoint);
+        //Debounce timer
+        debounceTimer = new TimeDebounce();
 
         //EditText
-        EditText inputText = (EditText)findViewById(R.id.editText);
+        inputText = (EditText)findViewById(R.id.editText);
+        inputText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
+                dataTester.startTimer();
+                int status = dataTester.checkNow(charSequence.toString());
+
+
+                if(status == 3) {
+                    Toast.makeText(getApplicationContext(), "timespent " + dataTester.getTimeSpent(),
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                //inputText.setText(dataTester.getCurrOutputString().toString());
+            }
+        });
+
         //Don't show keyboard when text is in focus
         inputText.setShowSoftInputOnFocus(false);
 
         //Init Buttons
         initButtons();
 
-        mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.color_blob_detection_activity_surface_view);
+        //Create Spinner
+        Spinner spinnerPicker = (Spinner)findViewById(R.id.spinnerPicker);
+
+        //Create an ArrayAdapter using the predefined string array and default spinner layout
+        adapterSpinner = ArrayAdapter.createFromResource(this,
+                R.array.sentencePicker, android.R.layout.simple_spinner_item);
+
+        //Specify the layout to use when the list of choices appears
+        adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        spinnerPicker.setAdapter(adapterSpinner);
+        spinnerPicker.setSelection(adapterSpinner.getCount() - 1);
+        spinnerPicker.setOnItemSelectedListener(this);
+
+        mOpenCvCameraView = (CameraBridgeViewBase) findViewById(
+                R.id.color_blob_detection_activity_surface_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
         mOpenCvCameraView.setAlpha(0);
@@ -271,56 +312,71 @@ public class TestActivity extends AppCompatActivity implements View.OnTouchListe
         Mat spectrumLabel = mRgba.submat(4, 4 + mSpectrum.rows(), 70, 70 + mSpectrum.cols());
         mSpectrum.copyTo(spectrumLabel);
 
-        //Check if click is detected
-        if(gBlobDetector.getContours().size() == 2) {
-            double area1 = Imgproc.contourArea(gBlobDetector.getContours().get(0));
-            double area2 = Imgproc.contourArea(gBlobDetector.getContours().get(1));
-
-            //Create threshold values according to area1
-            double lowerBound = area1 * 1 - areaThreshold;
-            double upperBound = area1 * 1 + areaThreshold;
-
-            //Click detected, two blobs of the aprox same size
-            if((area2 <= upperBound) || (area2 >= lowerBound)) {
-                //Obtain MotionEvent object
-                //TODO: Remove when calibration will be done
-                long downTime = SystemClock.uptimeMillis();
-                long eventTime = SystemClock.uptimeMillis() + 100;
-
+        if(debounceTimer.debounceOver()) {
+            Log.d(ActivityTags.getActivity().getColorBlobDetection(), "Debounce reset ");
+        }
+        if(!debounceTimer.isStarted()) {
+            //Check if click is detected
+            if (gBlobDetector.getContours().size() == 2) {
                 //40 and 750 are temporary calibration values
                 //TODO: Better automatic calibration -> Make user touch screen 4 points
-                float x = (float)centerPoint.x + 40;
-                float y = (float)centerPoint.y + 750;
+                float x = (float) screenPoint.x + 25;
+                float y = (float) screenPoint.y + 985;
 
-               Log.d(ActivityTags.getActivity().getColorBlobDetection(), "Touch found at x: " +
-               centerPoint.x + " and y: " + centerPoint.y);
+                double area1 = Imgproc.contourArea(gBlobDetector.getContours().get(0));
+                double area2 = Imgproc.contourArea(gBlobDetector.getContours().get(1));
 
-                m_Instrumentation.sendPointerSync(MotionEvent.obtain(SystemClock.uptimeMillis(),
-                        SystemClock.uptimeMillis(),MotionEvent.ACTION_DOWN,x, y, 0));
-                m_Instrumentation.sendPointerSync(MotionEvent.obtain(SystemClock.uptimeMillis(),
-                        SystemClock.uptimeMillis(),MotionEvent.ACTION_UP,x, y, 0));
-            }
-        } else {
-            //Will be used to check if point has moved
-            oldCenterPoint = centerPoint;
-            centerPoint = gBlobDetector.getCenterPoint(centerPoint);
-            Log.i(ActivityTags.getActivity().getColorBlobDetection(),"Koordinate tocke "
-                    + centerPoint.x + " " + centerPoint.y);
+                //Create threshold values according to area1
+                double lowerBound = area1 * 1 - areaThreshold;
+                double upperBound = area1 * 1 + areaThreshold;
 
-            //Check if point has moved
-            //If it has -> draw animation
-            if((oldCenterPoint.x != centerPoint.x) || (oldCenterPoint.y != centerPoint.x)) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        movePointer = new TranslateAnimation((float)oldCenterPoint.x,
-                                (float)centerPoint.x, (float)oldCenterPoint.y, (float)centerPoint.y);
-                        movePointer.setDuration(10);
-                        movePointer.setFillAfter(true);
+                //Click detected, two blobs of the aprox same size
+                if ((area2 <= upperBound) || (area2 >= lowerBound)) {
+                    Log.d(ActivityTags.getActivity().getColorBlobDetection(), "Touch found at x: " +
+                            centerPoint.x + " and y: " + centerPoint.y);
 
-                        pointerImage.startAnimation(movePointer);
-                    }
-                });
+                    Log.d(ActivityTags.getActivity().getColorBlobDetection(), "Real Touch found at x: " +
+                            x + " and y: " + y);
+
+                    m_Instrumentation.sendPointerSync(MotionEvent.obtain(SystemClock.uptimeMillis(),
+                            SystemClock.uptimeMillis(), MotionEvent.ACTION_DOWN, x, y, 0));
+                    m_Instrumentation.sendPointerSync(MotionEvent.obtain(SystemClock.uptimeMillis(),
+                            SystemClock.uptimeMillis(), MotionEvent.ACTION_UP, x, y, 0));
+                    debounceTimer.startDebounce();
+
+                    Log.d(ActivityTags.getActivity().getColorBlobDetection(), "Debounce started :" +
+                            debounceTimer.getStartTime());
+                }
+            } else {
+                //Will be used to check if point has moved
+                oldCenterPoint = screenPoint;
+                screenPoint = gBlobDetector.getCenterPoint(screenPoint);
+                Log.i(ActivityTags.getActivity().getColorBlobDetection(), "Koordinate tocke stara "
+                        + screenPoint.x + " " + screenPoint.y);
+
+                double x = (float) screenPoint.x * 1.1;
+                double y = (float) screenPoint.y * 1.25;
+                Log.i(ActivityTags.getActivity().getColorBlobDetection(), "Koordinate tocke nova "
+                        + x + " " + y);
+                screenPoint.x = x;
+                screenPoint.y = y;
+                //Check if point has moved
+                //If it has -> draw animation
+                if ((oldCenterPoint.x != screenPoint.x) || (oldCenterPoint.y != screenPoint.y)) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            movePointer = new TranslateAnimation((float) oldCenterPoint.x,
+                                    (float) screenPoint.x, (float) oldCenterPoint.y,
+                                    (float) screenPoint.y);
+
+                            movePointer.setDuration(10);
+                            movePointer.setFillAfter(true);
+
+                            pointerImage.startAnimation(movePointer);
+                        }
+                    });
+                }
             }
         }
         return mRgba;
@@ -455,6 +511,7 @@ public class TestActivity extends AppCompatActivity implements View.OnTouchListe
                         break;
 
                     case (R.id.buttonBcksp):
+                            //dataTester.setBackspace();
                             pressedButtonThread(KeyEvent.KEYCODE_DEL);
                         break;
 
@@ -575,4 +632,17 @@ public class TestActivity extends AppCompatActivity implements View.OnTouchListe
 
         return new Scalar(pointMatRgba.get(0, 0));
     }
+
+    //Spinner
+    @Override
+    public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+        dataTester = new TestData((String)adapterView.getItemAtPosition(position));
+        //inputText.setText("");
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> adapterView) {
+
+    }
+
 }
