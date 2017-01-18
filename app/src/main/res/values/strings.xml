@@ -6,4 +6,37 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
+    
+    <string-array name="sentencePicker">
+        <item>the force is with you</item>
+        <item>i agree with you</item>
+        <item>fish are jumping</item>
+        <item>play it again sam</item>
+        <item>rain rain go away</item>
+        <item>the living is easy</item>
+        <item>the cotton is high</item>
+        <item>i hate baking pies</item>
+        <item>time to go shopping</item>
+        <item>the power of denial</item>
+        <item>do not say anything</item>
+        <item>take a coffee break</item>
+        <item>have a good weekend</item>
+        <item>life is but a dream</item>
+        <item>batman wears a cape</item>
+        <item>peek out the window</item>
+        <item>the world is a stage</item>
+        <item>all work and no play</item>
+        <item>buckle up for safety</item>
+        <item>nobody cares anymore</item>
+        <item>the sum of the parts</item>
+        <item>toss the ball around</item>
+        <item>join us on the patio</item>
+        <item>zero in on the facts</item>
+        <item>we drive on parkways</item>
+        <item>we park in driveways</item>
+        <item>the daring young man</item>
+        <item>you have my sympathy</item>
+        <item>Default</item>
+
+    </string-array>
 </resources>
