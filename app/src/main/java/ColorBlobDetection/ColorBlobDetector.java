@@ -18,6 +18,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.utils.Converters;
 
@@ -30,14 +31,22 @@ public class ColorBlobDetector {
     private Scalar mUpperBound = new Scalar(0);
 
     // Color radius for range checking in HSV color space
-    private Scalar mColorRadius = new Scalar(15,40,20,0);
+    private Scalar mColorRadius = new Scalar(20,25,25,0);
     private Mat mSpectrum = new Mat();
     private List<MatOfPoint> mContours = new ArrayList<MatOfPoint>();
 
     //Variables used for HSV threshold
     private static int MINHSV = 0;
-    private static int SENSITIVITY = 15;
     private static int MAXHSV = 255;
+
+    private int minHue = 216;
+    private int maxHue = 244;
+
+    private int minSat = 30;
+    private int maxSat = 117;
+
+    private int minVal = 118;
+    private int maxVal = 255;
 
     // Cache
     Mat mPyrDownMat = new Mat();
@@ -47,8 +56,8 @@ public class ColorBlobDetector {
     Mat mHierarchy = new Mat();
 
     //Values from SEEK bar
-    private double _minArea = 150, _maxArea = 900;
-    private double _defaultArea = 150;
+    private double _minArea = 10, _maxArea = 910;
+    private double _defaultArea = 10;
 
     private String stringHSV;
 
@@ -65,28 +74,28 @@ public class ColorBlobDetector {
         double maxH = (hsvColor.val[0]+ mColorRadius.val[0] <= 255) ? hsvColor.val[0]+ mColorRadius.val[0] : 255;
 
         //TODO: Try to aprox.
-        mLowerBound.val[0] = minH;
-        //mLowerBound.val[0] = MINHSV;
+        //mLowerBound.val[0] = minH;
+        mLowerBound.val[0] = minHue;
         Log.i(ActivityTags.getActivity().getColorBlobDetection(), "mLowerBound val[0] = " + mLowerBound.val[0]);
 
-        mUpperBound.val[0] = maxH;
-        //mUpperBound.val[0] = MAXHSV;
+        //mUpperBound.val[0] = maxH;
+        mUpperBound.val[0] = maxHue;
         Log.i(ActivityTags.getActivity().getColorBlobDetection(), "mUpperBound val[0] = " + mUpperBound.val[0]);
 
-        mLowerBound.val[1] = hsvColor.val[1] - mColorRadius.val[1];
-        //mLowerBound.val[1] = MINHSV;
+        //mLowerBound.val[1] = hsvColor.val[1] - mColorRadius.val[1];
+        mLowerBound.val[1] = minSat;
         Log.i(ActivityTags.getActivity().getColorBlobDetection(), "mLowerBound val[1] = " + mLowerBound.val[1]);
 
-        mUpperBound.val[1] = hsvColor.val[1] + mColorRadius.val[1];
-        //mUpperBound.val[1] = SENSITIVITY;
+        //mUpperBound.val[1] = hsvColor.val[1] + mColorRadius.val[1];
+        mUpperBound.val[1] = maxSat;
         Log.i(ActivityTags.getActivity().getColorBlobDetection(), "mUpperBound val[1] = " + mUpperBound.val[1]);
 
-        mLowerBound.val[2] = hsvColor.val[2] - mColorRadius.val[2];
-        //mLowerBound.val[2] = MAXHSV - SENSITIVITY;
+        //mLowerBound.val[2] = hsvColor.val[2] - mColorRadius.val[2];
+        mLowerBound.val[2] = minVal;
         Log.i(ActivityTags.getActivity().getColorBlobDetection(), "mLowerBound val[2] = " + mLowerBound.val[2]);
 
-        mUpperBound.val[2] = hsvColor.val[2] + mColorRadius.val[2];
-        //mUpperBound.val[2] = MINHSV;
+        //mUpperBound.val[2] = hsvColor.val[2] + mColorRadius.val[2];
+        mUpperBound.val[2] = maxVal;
         Log.i(ActivityTags.getActivity().getColorBlobDetection(), "mUpperBound val[2] = " + mUpperBound.val[2]);
 
         mLowerBound.val[3] = MINHSV;
@@ -110,6 +119,8 @@ public class ColorBlobDetector {
     public void process(Mat rgbaImage) {
         Imgproc.pyrDown(rgbaImage, mPyrDownMat);
         Imgproc.pyrDown(mPyrDownMat, mPyrDownMat);
+
+
 
         Imgproc.cvtColor(mPyrDownMat, mHsvMat, Imgproc.COLOR_RGB2HSV_FULL);
 
@@ -159,7 +170,7 @@ public class ColorBlobDetector {
 
     //Sets min area for color blob tracking
     public void setMinArea(double minArea) {
-        _minArea = _defaultArea + (minArea * 50);
+        _minArea = _defaultArea + (minArea * 10);
     }
 
     public void setMaxArea(double maxArea) {
