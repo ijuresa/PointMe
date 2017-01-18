@@ -157,8 +157,18 @@ public class JavaCameraView extends CameraBridgeViewBase implements PreviewCallb
                         params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
                     }
 
+                    params.setWhiteBalance("daylight");
+                    params.setExposureCompensation(12);
+
+                    //params.setAutoExposureLock(true);
+                    //params.setAutoWhiteBalanceLock(true);
+
+
                     mCamera.setParameters(params);
                     params = mCamera.getParameters();
+                    Log.d(TAG, "White Balance " + params.getWhiteBalance());
+                    Log.d(TAG, "AutoExposure " + params.getAutoExposureLock());
+                    Log.d(TAG, "AutoWhiteBalance " + params.getAutoWhiteBalanceLock());
 
                     mFrameWidth = params.getPreviewSize().width;
                     mFrameHeight = params.getPreviewSize().height;
@@ -283,7 +293,7 @@ public class JavaCameraView extends CameraBridgeViewBase implements PreviewCallb
 
     @Override
     public void onPreviewFrame(byte[] frame, Camera arg1) {
-        Log.d(TAG, "Preview Frame received. Frame size: " + frame.length);
+        //Log.d(TAG, "Preview Frame received. Frame size: " + frame.length);
         synchronized (this) {
             mFrameChain[mChainIdx].put(0, 0, frame);
             mCameraFrameReady = true;
