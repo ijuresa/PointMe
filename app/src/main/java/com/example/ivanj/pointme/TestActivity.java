@@ -1,5 +1,6 @@
 package com.example.ivanj.pointme;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -42,7 +43,9 @@ import android.widget.Toast;
 import com.ColorBlobCalibrate.TimeDebounce;
 
 import ColorBlobDetection.ColorBlobDetector;
+import UserData.ExportData;
 import UserData.TestData;
+import UserData.User;
 import Utilities.ActivityTags;
 
 public class TestActivity extends AppCompatActivity implements View.OnTouchListener,
@@ -86,6 +89,8 @@ public class TestActivity extends AppCompatActivity implements View.OnTouchListe
     TestData dataTester;
     EditText inputText;
 
+    TextWatcher watcher;
+
     private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
@@ -120,19 +125,31 @@ public class TestActivity extends AppCompatActivity implements View.OnTouchListe
 
         //EditText
         inputText = (EditText)findViewById(R.id.editText);
-        inputText.addTextChangedListener(new TextWatcher() {
+
+        ExportData.get_exportData();
+
+        watcher = new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            public void beforeTextChanged(CharSequence charSequence, int start, int before, int count) {
 
             }
 
             @Override
-            public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
+            public void onTextChanged(CharSequence charSequence, int start, int before, int count)  {
                 dataTester.startTimer();
                 int status = dataTester.checkNow(charSequence.toString());
 
-
                 if(status == 3) {
+                    try {
+                        ExportData.get_exportData().writeRow(User.getUser().getName(),
+                                User.getUser().getAge(), User.getUser().getGender(),
+                                dataTester.getIndex(), dataTester.getCurrOutputString().length(),
+                                dataTester.getWrongBackspaces(), dataTester.getBackspaces(),
+                                dataTester.getTimeSpent());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
                     Toast.makeText(getApplicationContext(), "timespent " + dataTester.getTimeSpent(),
                             Toast.LENGTH_SHORT).show();
                 }
@@ -140,9 +157,15 @@ public class TestActivity extends AppCompatActivity implements View.OnTouchListe
 
             @Override
             public void afterTextChanged(Editable editable) {
-                //inputText.setText(dataTester.getCurrOutputString().toString());
+                inputText.removeTextChangedListener(watcher);
+
+                inputText.setText(dataTester.getCurrOutputString());
+                inputText.setSelection(dataTester.getCurrOutputString().length());
+
+                inputText.addTextChangedListener(watcher);
             }
-        });
+        };
+        inputText.addTextChangedListener(watcher);
 
         //Don't show keyboard when text is in focus
         inputText.setShowSoftInputOnFocus(false);
@@ -354,8 +377,8 @@ public class TestActivity extends AppCompatActivity implements View.OnTouchListe
                 Log.i(ActivityTags.getActivity().getColorBlobDetection(), "Koordinate tocke stara "
                         + screenPoint.x + " " + screenPoint.y);
 
-                double x = (float) screenPoint.x * 1.1;
-                double y = (float) screenPoint.y * 1.25;
+                double x = (float) screenPoint.x * 1.2;
+                double y = (float) screenPoint.y * 1.3;
                 Log.i(ActivityTags.getActivity().getColorBlobDetection(), "Koordinate tocke nova "
                         + x + " " + y);
                 screenPoint.x = x;
@@ -511,7 +534,7 @@ public class TestActivity extends AppCompatActivity implements View.OnTouchListe
                         break;
 
                     case (R.id.buttonBcksp):
-                            //dataTester.setBackspace();
+                            dataTester.setBackspace();
                             pressedButtonThread(KeyEvent.KEYCODE_DEL);
                         break;
 
@@ -636,8 +659,11 @@ public class TestActivity extends AppCompatActivity implements View.OnTouchListe
     //Spinner
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
-        dataTester = new TestData((String)adapterView.getItemAtPosition(position));
-        //inputText.setText("");
+        dataTester = new TestData((String)adapterView.getItemAtPosition(position), position);
+        inputText.removeTextChangedListener(watcher);
+
+        inputText.setText("");
+        inputText.addTextChangedListener(watcher);
     }
 
     @Override
