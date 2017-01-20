@@ -24,8 +24,8 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
 
-        android:paddingLeft="8dp"
-        android:paddingRight="8dp">
+        android:paddingLeft="14dp"
+        android:paddingRight="14dp">
 
         <TableRow
             android:layout_width="match_parent"
@@ -385,10 +385,6 @@
                 android:minHeight="100dp" />
 
         </TableRow>
-
-
-
-
     </TableLayout>
 
     <EditText
@@ -396,6 +392,7 @@
         android:layout_height="wrap_content"
         android:inputType="text"
         android:ems="10"
+        android:textSize="30sp"
         android:id="@+id/editText"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
@@ -409,7 +406,7 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:scrollbarSize="18dp" />
+        android:scrollbarSize="30dp" />
 
     <ImageView
         android:layout_width="wrap_content"

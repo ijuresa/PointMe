@@ -14,25 +14,30 @@ import Utilities.ActivityTags;
 public class TestData {
     private String inputString;
     private char[] inputStringChar;
-    private char[] currUserInputString;
 
     private char[] currOutputString;
     private List<Integer> wrongCharIndex = new ArrayList<Integer>();
 
+    //Status messages
     private static int statusWrong = 1;
     private static int statusCurrOk = 2;
     private static int statusFinOk = 3;
 
+    //Timer
     private long startTime;
     private long endTime;
     private long timeSpent;
+
     private boolean isStarted = false;
 
+    private int index;
+
+    //Backspace
     private int deleteGood = 0;
     private int deleteBad = 0;
 
-
-    public TestData(String inputString) {
+    public TestData(String inputString, int index) {
+        this.index = index;
         this.inputString = inputString;
         this.inputStringChar = inputString.toCharArray();
     }
@@ -56,7 +61,6 @@ public class TestData {
     }
 
     /**
-     *
      * @param smallerString: String to be compared to input String
      * @return 1: Mistake
      * @return 2: No mistake, not finished
@@ -67,19 +71,28 @@ public class TestData {
         wrongCharIndex.clear();
 
         char[] smallStringChar = smallerString.toCharArray();
-        currUserInputString = smallStringChar;
+        currOutputString = smallStringChar;
 
-        currOutputString = currUserInputString;
+        Log.d(ActivityTags.getActivity().getColorBlobDetection(), "InputString = " +
+                smallerString);
 
-        Log.d(ActivityTags.getActivity().getColorBlobDetection(), "Text = " + currOutputString);
+        Log.d(ActivityTags.getActivity().getColorBlobDetection(), "NewPrint = " +
+                String.valueOf(currOutputString));
+
 
         for(int i = 0; i < smallStringChar.length; i++) {
-            if(smallStringChar[i] != inputStringChar[i]) {
+            if(i >= inputStringChar.length) {
+                wrongCharIndex.add(i);
+                currOutputString[i] = '*';
+                returnStatus = statusWrong;
+            }
+            else if(smallStringChar[i] != inputStringChar[i]) {
                 wrongCharIndex.add(i);
                 currOutputString[i] = '*';
                 returnStatus = statusWrong;
             }else {
-                returnStatus = statusCurrOk;
+                if(wrongCharIndex.isEmpty()) returnStatus = statusCurrOk;
+
             }
         }
         if((returnStatus == statusCurrOk) && (smallStringChar.length == inputStringChar.length)) {
@@ -87,18 +100,40 @@ public class TestData {
             endTimer();
             calculateTimeSpent();
         }
+        Log.d(ActivityTags.getActivity().getColorBlobDetection(), "NewPrint2222 = " +
+                String.valueOf(currOutputString));
+
         return returnStatus;
     }
 
     public void setBackspace() {
-        //wrongCharIndex.get(wrongCharIndex.size())
+        if(getCurrOutputString().isEmpty()) return;
+
+        String temp = getCurrOutputString();
+        if(temp.endsWith("*")) deleteBad ++;
+        else deleteGood ++;
+
+        Log.d(ActivityTags.getActivity().getColorBlobDetection(), "DeletedBad = " + deleteBad);
+        Log.d(ActivityTags.getActivity().getColorBlobDetection(), "DeletedGood = " + deleteGood);
+    }
+
+    public int getBackspaces() {
+        return deleteGood + deleteBad;
+    }
+
+    public int getWrongBackspaces() {
+        return deleteBad;
     }
 
     public long getTimeSpent() {
         return timeSpent;
     }
 
+    public int getIndex() {
+        return index;
+    }
+
     public String getCurrOutputString() {
-        return currOutputString.toString();
+        return String.valueOf(currOutputString);
     }
 }
