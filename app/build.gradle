@@ -25,7 +25,16 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     compile project(':openCVLibrary2411')
+    compile (name:'opencsv-3.8', ext:'jar')
     compile 'com.android.support:appcompat-v7:25.0.0'
     compile 'com.android.support:design:25.0.0'
-    testCompile 'junit:junit:4.12'
+
+
+            testCompile 'junit:junit:4.12'
+}
+
+repositories{
+    flatDir{
+        dirs 'libs'
+    }
 }
