@@ -43,6 +43,7 @@ import android.widget.Toast;
 import com.ColorBlobCalibrate.TimeDebounce;
 
 import ColorBlobDetection.ColorBlobDetector;
+import UserData.CustomSpinner;
 import UserData.ExportData;
 import UserData.TestData;
 import UserData.User;
@@ -174,7 +175,7 @@ public class TestActivity extends AppCompatActivity implements View.OnTouchListe
         initButtons();
 
         //Create Spinner
-        Spinner spinnerPicker = (Spinner)findViewById(R.id.spinnerPicker);
+        CustomSpinner spinnerPicker = (CustomSpinner)findViewById(R.id.spinnerPicker);
 
         //Create an ArrayAdapter using the predefined string array and default spinner layout
         adapterSpinner = ArrayAdapter.createFromResource(this,
