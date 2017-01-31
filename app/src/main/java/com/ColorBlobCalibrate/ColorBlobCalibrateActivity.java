@@ -37,6 +37,45 @@ import org.opencv.core.Size;
 
 import java.util.List;
 
+/**
+* @Description Main Activity for color calibration
+*
+*              The logic of this activity is taken from OpenCV ColorBlob example. Originally it 
+*              reacts to touch events. When particular part of *surface view* is touched it 
+*              calculates its HSV average color for further tracking.
+*                       
+*              As we were working with IR light and not with regular visible light there were 
+*              many problems, where many of them still persists. When camera sees IR light it is
+*              already in visible spectrum so there isn’t any way for its isolation, so we can 
+*              track it. Part of the solution is to put visible light blocker (diskette) so we can
+*              eliminate unwanted light. 
+*
+*              Camera has its own problems. Depending on incoming light it auto calibrates white
+*              balance, exposure compensation etc.... Unfortunately OpenCV works with old Camera
+*              library and it doesn't have a lot of options. Best try is to lock *WhiteBalance*
+*              and *ExposureCompensation* parameters.  
+*
+*              HSV color is set manually as: 
+*                       private static int MINHSV = 0;
+*                       private static int MAXHSV = 255;
+*
+*                       private int minHue = 216;
+*                       private int maxHue = 244;
+*
+*                       private int minSat = 30;
+*                       private int maxSat = 117;
+*
+*                       private int minVal = 118;
+*                       private int maxVal = 255;
+*
+*              Values can be checked: https://en.wikipedia.org/wiki/HSL_and_HSV
+*
+*              When testing there still should be some light in the room but it shouldn’t 
+*              be pointed directly to the camera as it messes with the tracking. 
+*
+*              Most of the code should be self-explanatory. 
+*/   
+
 public class ColorBlobCalibrateActivity extends AppCompatActivity implements View.OnTouchListener,
         CameraBridgeViewBase.CvCameraViewListener2 {
 
@@ -104,7 +143,7 @@ public class ColorBlobCalibrateActivity extends AppCompatActivity implements Vie
         seekBarMaxArea.setProgress(pSettings.getInt("maxArea",15));
         seekBarMinArea.setProgress(pSettings.getInt("minArea",0));
 
-
+        //SeekBar for minArea - minimal surface of the blob to be tracked
         seekBarMinArea.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progressValue, boolean b) {
@@ -123,7 +162,7 @@ public class ColorBlobCalibrateActivity extends AppCompatActivity implements Vie
 
             }
         });
-
+        //SeekBar for maxArea - maximal surface of the blob to be tracked
         seekBarMaxArea.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progressValue, boolean b) {
@@ -196,8 +235,6 @@ public class ColorBlobCalibrateActivity extends AppCompatActivity implements Vie
         int x = (int)motionEvent.getX() - xOffset;
         int y = (int)motionEvent.getY() - yOffset;
         Log.i(ActivityTags.getActivity().getColorBlobDetection(), "Touch coordinates:" + x + " , " + y);
-
-        //TODO: Add clicked position
 
         Rect touchedRect = new Rect();
 
