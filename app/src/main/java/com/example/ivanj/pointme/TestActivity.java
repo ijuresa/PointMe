@@ -49,6 +49,23 @@ import UserData.TestData;
 import UserData.User;
 import Utilities.ActivityTags;
 
+/**
+* @Description For more detailed description check ColorBlobCalibrateActivity.java
+*              file
+*
+*              This activity is the core of the application. It is used to:
+*               *track IR blob
+*               *detect click/tap
+*               *create keyboard layout
+*               *check if string is okay
+*               *send data for .csv output
+*               *get strings from Spinner
+*               *get data from SharedPreference
+*               *animate 'pointer'
+*               *etc..
+*
+*              Most of the code should be self-explanatory.  
+*/
 public class TestActivity extends AppCompatActivity implements View.OnTouchListener,
         CameraBridgeViewBase.CvCameraViewListener2, AdapterView.OnItemSelectedListener {
 
@@ -64,7 +81,7 @@ public class TestActivity extends AppCompatActivity implements View.OnTouchListe
     private Mat gRgbaF;
     private Mat gRbgaT;
 
-    //Pointer variables
+    //Pointer(as in dots) variables
     private TranslateAnimation movePointer;
     private ImageView pointerImage;
     private Point centerPoint = new Point(0,0);
@@ -126,9 +143,15 @@ public class TestActivity extends AppCompatActivity implements View.OnTouchListe
 
         //EditText
         inputText = (EditText)findViewById(R.id.editText);
-
+        
+        //Get ExportData object - for .csv data save
         ExportData.get_exportData();
-
+        
+        /**
+        * @Description Watcher for editText
+        *              Simplified - it checks if userInputText == chosen string
+        *              Important! - editText is "locked" for normal input. See afterTextChanged
+        */
         watcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int start, int before, int count) {
@@ -137,9 +160,12 @@ public class TestActivity extends AppCompatActivity implements View.OnTouchListe
 
             @Override
             public void onTextChanged(CharSequence charSequence, int start, int before, int count)  {
+                //If timer is not started - start it
                 dataTester.startTimer();
+                //Check if input string is OK
                 int status = dataTester.checkNow(charSequence.toString());
-
+                
+                //If it's OK - send data for .csv write
                 if(status == 3) {
                     try {
                         ExportData.get_exportData().writeRow(User.getUser().getName(),
@@ -150,13 +176,20 @@ public class TestActivity extends AppCompatActivity implements View.OnTouchListe
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
+                    
+                    //Write to screen so users see their time
                     Toast.makeText(getApplicationContext(), "timespent " + dataTester.getTimeSpent(),
                             Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
+            /**
+            * @Description Not quite by the book. We remove listener and then inject current text
+            *                   to editText field. It is done this way because it is not possible
+            *                   to manipulate editText field while listener is active.
+            *              It is done this way because we need to write '*' if current letter is wrong
+            */
             public void afterTextChanged(Editable editable) {
                 inputText.removeTextChangedListener(watcher);
 
@@ -535,6 +568,7 @@ public class TestActivity extends AppCompatActivity implements View.OnTouchListe
                         break;
 
                     case (R.id.buttonBcksp):
+                            //For backspace
                             dataTester.setBackspace();
                             pressedButtonThread(KeyEvent.KEYCODE_DEL);
                         break;
@@ -661,8 +695,10 @@ public class TestActivity extends AppCompatActivity implements View.OnTouchListe
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
         dataTester = new TestData((String)adapterView.getItemAtPosition(position), position);
+        //Save case as in afterTextChanged - we must disable listener so we can manipulate
+        //with editText field
         inputText.removeTextChangedListener(watcher);
-
+        
         inputText.setText("");
         inputText.addTextChangedListener(watcher);
     }
