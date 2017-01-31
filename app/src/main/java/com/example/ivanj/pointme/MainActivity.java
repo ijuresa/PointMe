@@ -16,6 +16,11 @@ import Utilities.ActivityTags;
 
 import org.opencv.android.OpenCVLoader;
 
+/**
+* @Description MainActivity when application starts
+*               
+*              Only used for user authentication/registration
+*/
 public class MainActivity extends AppCompatActivity {
     private Button gButton;
     private EditText gUserName, gUserAge;
@@ -36,15 +41,19 @@ public class MainActivity extends AppCompatActivity {
         addListenerOnButton();
     }
 
+    /**
+    * @Description Initialize 'screen' components            
+    */
     private void addListenerOnButton() {
         gButton = (Button)findViewById(R.id.btnSignIn);
         gUserName = (EditText)findViewById(R.id.txtInputName);
         gUserAge = (EditText)findViewById(R.id.txtInputAge);
         gRadioGroup = (RadioGroup)findViewById(R.id.radioGroup2);
-
+        
         gButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //Each time check if every field has 'something' in it
                 try{
                     if(isFilled(gUserName)) {
                         User.getUser().setName(gUserName.getText().toString());
