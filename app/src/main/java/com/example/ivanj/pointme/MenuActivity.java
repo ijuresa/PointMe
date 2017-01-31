@@ -11,6 +11,9 @@ import com.ColorBlobCalibrate.ColorBlobCalibrateActivity;
 
 import UserData.User;
 
+/**
+* @Description MenuActivity - used only for going to calibration and test            
+*/
 public class MenuActivity extends AppCompatActivity {
     Button gButtonTest, gButtonCalibrate;
 
